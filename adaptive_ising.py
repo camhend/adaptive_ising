@@ -5,6 +5,7 @@
 
 import numpy as np
 import random
+from bitstring import BitArray
 
 class Simulation:
     N = 10000
@@ -26,7 +27,7 @@ class Simulation:
             # s[i]=1 #| we already populated s with all ones 
             if(i % 2 == 0):
                 self.s[i]=-1
-                self.m += self.s[i] / self.N
+            self.m += self.s[i] / self.N
 
     def single_update(self, n):
         '''update of the spin n according to the heat bath method'''
@@ -51,14 +52,27 @@ class Simulation:
 random.seed(0)
 t = 0
 wait = 100
-total = 10000000
+total = 700 #10000000
 
 sim = Simulation()
-
 sim.init()
 
+file = open('simulation_output.txt', 'w')
+states_file = open('simulation_spins.bin', 'bw')
+
+print(f"0/{total}", end='\r')
 while t <= wait + total:
     if(t > wait):
-        print(sim.m, sim.H)
+        file.write(f"{sim.m} {sim.H}\n")
+        binary_str_array = np.where(sim.s == -1, 0, sim.s).astype(int).astype(str)
+        binary_string = ''.join(binary_str_array)
+        binary = BitArray(bin=binary_string)
+        binary.tofile(states_file)
+
     sim.update()
+                             
     t += 1
+    if (t % 100 == 0):
+        print(f"{t}/{total}", end='\r')
+
+file.close()
