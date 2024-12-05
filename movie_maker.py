@@ -2,7 +2,7 @@
 # December 2024
 # Creates a movie from a binary file given the size of each frame
 
-import bitstring
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -12,6 +12,12 @@ frame_size = 10000
 img_dimentions = (100,100)
 fps = 30
 bytes_size = np.ceil(frame_size / 8).astype(int)
+
+bin_path = 'simulation_spins.bin'
+if len(sys.argv) > 1:
+    bin_path = sys.argv[1]
+
+print(f'bin_path:{bin_path}')
 
 bin_file = open('simulation_spins.bin', 'br')
 frames = []
