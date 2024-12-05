@@ -1,0 +1,8 @@
+Nicholas J Uhlhorn
+December 2024
+
+A list of sources that were used for the project for our cites later.
+
+- https://en.wikipedia.org/wiki/Ising_model#Metropolis_algorithm
+- https://www.nature.com/articles/s43588-023-00410-9
+- 
