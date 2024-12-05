@@ -37,7 +37,7 @@ im = plt.imshow(a, interpolation='none', aspect='auto', vmin=0, vmax=1)
 
 def animate_func(i):
     if i % fps == 0:
-        print('.', end='', flush=True)
+        print(f'{i}/{len(frames)}', end='\r', flush=True)
 
     im.set_array(frames[i])
     return [im]
@@ -50,6 +50,6 @@ anim = animation.FuncAnimation(
     interval = 1000 / fps,
 )
 
-print("Saving Movie")
 writer_video = animation.FFMpegFileWriter(fps=fps)
 anim.save('movie.mp4', writer=writer_video)
+print(flush=False)
