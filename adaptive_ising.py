@@ -76,6 +76,9 @@ save_s = False
 if len(sys.argv) > 1:
     save_s = bool(sys.argv[1])
 
+if len(sys.argv) > 2:
+    total = int(sys.argv[2])
+
 sim = Simulation()
 sim.init()
 
