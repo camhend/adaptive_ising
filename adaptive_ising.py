@@ -74,10 +74,12 @@ total = 700 #10000000
 
 save_s = False
 if len(sys.argv) > 1:
-    save_s = bool(sys.argv[1])
+    save_s = sys.argv[1].lower() == 'true'
 
 if len(sys.argv) > 2:
     total = int(sys.argv[2])
+
+print(f'save_s:{save_s} | total:{total}')
 
 sim = Simulation()
 sim.init()
