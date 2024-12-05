@@ -19,7 +19,7 @@ if len(sys.argv) > 1:
 
 print(f'bin_path:{bin_path}')
 
-bin_file = open('simulation_spins.bin', 'br')
+bin_file = open(bin_path, 'br')
 frames = []
 
 print("Reading bits")
