@@ -51,6 +51,20 @@ class Simulation:
             n = int(self.N * self.casual())
             self.single_update(n)
 
+    def vectorized_update(self):
+        pp = 1 / (1 + (1 / np.exp(2 * self.beta * (self.m + self.H))))
+
+        # update_indexes = (np.random.rand(self.N) * self.N).astype(int)
+        random_numbers = np.random.rand(self.N)
+
+        # if we want to flip multiply spin by -1, otherwize 1 to keep the same
+        new_spins = np.where(random_numbers < pp, 1, -1)
+        changing_spins = np.where(self.s != new_spins)
+        self.s = new_spins 
+        
+        self.m += 2.0 * (np.sum(self.s[changing_spins]) / self.N)
+        self.H -= (self.c * self.m * self.dt) * self.N
+
 # Main
 random.seed(0)
 t = 0
@@ -72,7 +86,8 @@ while t <= wait + total:
         binary = BitArray(bin=binary_string)
         binary.tofile(states_file)
 
-    sim.update()
+    # sim.update()
+    sim.vectorized_update()
                              
     t += 1
     if (t % 100 == 0):
