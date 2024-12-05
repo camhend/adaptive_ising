@@ -3,6 +3,7 @@
 # Adaptive Ising model
 # Converted from C code from https://github.com/demartid/stat_mod_ada_nn/blob/main/adaptive_ising.cpp
 
+import sys
 import numpy as np
 import random
 from bitstring import BitArray
@@ -71,6 +72,10 @@ t = 0
 wait = 100
 total = 700 #10000000
 
+save_s = False
+if len(sys.argv) > 1:
+    save_s = bool(sys.argv[1])
+
 sim = Simulation()
 sim.init()
 
@@ -81,10 +86,12 @@ print(f"0/{total}", end='\r')
 while t <= wait + total:
     if(t > wait):
         file.write(f"{sim.m} {sim.H}\n")
-        binary_str_array = np.where(sim.s == -1, 0, sim.s).astype(int).astype(str)
-        binary_string = ''.join(binary_str_array)
-        binary = BitArray(bin=binary_string)
-        binary.tofile(states_file)
+
+        if save_s:
+            binary_str_array = np.where(sim.s == -1, 0, sim.s).astype(int).astype(str)
+            binary_string = ''.join(binary_str_array)
+            binary = BitArray(bin=binary_string)
+            binary.tofile(states_file)
 
     # sim.update()
     sim.vectorized_update()
