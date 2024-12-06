@@ -9,10 +9,8 @@ def gen_filter(diameter: int):
     norm = np.zeros((diameter, diameter, 2))
     pos = hex_coord(filter.shape)
     center = (diameter // 2, diameter // 2)
-    print("center: ", center, ": ", pos[center])
     for idx in np.ndindex(filter.shape):
         if np.array_equal(idx,center): # skip center
-            filter[idx] = 2
             continue 
         connect_radius = 1 * (3/2) * (diameter // 2) + .0001 # extra decimal to cover for rounding error
         if (np.linalg.norm(pos[idx] - pos[center]) <= connect_radius): 
