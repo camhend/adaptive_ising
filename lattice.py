@@ -4,24 +4,41 @@
 
 import numpy as np
 
-def gen_filter(diameter: int):
-    filter = np.zeros((diameter, diameter))
-    norm = np.zeros((diameter, diameter, 2))
+# return a matrix that contains a circular filter on a hex grid
+# The shape of the filter after transformation onto a hex grid 
+# depends on whether the center of the filter is in an even or odd row. 
+# Assumes filter is in a hex grid where odd rows are shifted to the right.
+def gen_filter(length: int, center_index: tuple): 
+    filter = np.zeros((length, length))
+    norm = np.zeros((length, length, 2))
     pos = hex_coord(filter.shape)
-    center = (diameter // 2, diameter // 2)
+    center = (length // 2, length // 2)
     for idx in np.ndindex(filter.shape):
         if np.array_equal(idx,center): # skip center
             continue 
-        connect_radius = 1 * (3/2) * (diameter // 2) + .0001 # extra decimal to cover for rounding error
+        connect_radius = 1 * (3/2) * (length // 2) + .0001 # extra decimal to cover for rounding error
         if (np.linalg.norm(pos[idx] - pos[center]) <= connect_radius): 
              filter[idx] = 1
         norm[idx] = pos[idx] - pos[center]
+
+    if (center_index[1] % 2 ==0):
+        for row in filter:
+            row[0: len(row) - 1] = row[1: (len(row))]
+            row[-1] = 0
     return filter
 
 # return a matrix of 2D grid coordinates for creating a hex lattice
 # each element in the matrix corresponds to a position to place a hexagon
 # The radius of the bounding circle around a hexagon is 1.
+# Specify whether to shift even or odd rows to the right.
 def hex_coord(shape: tuple):
+    # if (shifted_row_parity != 'even' or shifted_row_parity != 'odd'):
+    #     raise Exception("must specify wether to shift even or odd rows")
+
+    # parity = 0
+    # if (shifted_row_parity == 'odd'):
+    #     parity = 1
+
     size = 1 # radius of bounding circle
     horizontal_spacing = size * np.sqrt(3)
     vertical_spacing = size * (3/2)
