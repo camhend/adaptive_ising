@@ -7,12 +7,16 @@ import sys
 import numpy as np
 import random
 from bitstring import BitArray
+from lattice import *
 
 class Simulation:
     N = 10000
-    s = np.ones(N)
-    m = 0
+    shape = (100,100)
+    s = np.ones(shape)
+    # H = np.zeros(N.shape)
     H = 0
+    P = hex_coord(shape) # hex grid positions
+    m = 0
     beta = 2
     dt = 1 / N
     c = 0.01
@@ -24,11 +28,11 @@ class Simulation:
     # init no longer initializes H to 0 as we do so when we create a Simulation.
     def init(self):
         '''initalizes temperature configuration.'''
-        for i in range(0, self.N):
-            # s[i]=1 #| we already populated s with all ones 
-            if(i % 2 == 0):
-                self.s[i]=-1
-            self.m += self.s[i] / self.N
+        for idx in np.ndindex(self.shape):
+            # s[idx]=1 #| we already populated s with all ones 
+            if(idx[0] % 2 == 0):
+                self.s[idx]=-1
+            self.m += self.s[idx] / self.N
 
     def single_update(self, n):
         '''update of the spin n according to the heat bath method'''
@@ -56,14 +60,14 @@ class Simulation:
         pp = 1 / (1 + (1 / np.exp(2 * self.beta * (self.m + self.H))))
 
         # update_indexes = (np.random.rand(self.N) * self.N).astype(int)
-        random_numbers = np.random.rand(self.N)
+        random_numbers = np.random.rand(*self.shape)
 
         # if we want to flip multiply spin by -1, otherwize 1 to keep the same
         new_spins = np.where(random_numbers < pp, 1, -1)
-        changing_spins = np.where(self.s != new_spins)
+        changing_spins = np.where(self.s != new_spins, 1, 0)
         self.s = new_spins 
         
-        self.m += 2.0 * (np.sum(self.s[changing_spins]) / self.N)
+        self.m += 2.0 * (np.sum(np.multiply(self.s, changing_spins)) / self.N)
         self.H -= (self.c * self.m * self.dt) * self.N
 
 # Main
@@ -87,13 +91,15 @@ sim.init()
 file = open('simulation_output.txt', 'w')
 states_file = open('simulation_spins.bin', 'bw')
 
+
 print(f"0/{total}", end='\r')
 while t <= wait + total:
     if(t > wait):
         file.write(f"{sim.m} {sim.H}\n")
 
+        s_flat = sim.s.flatten()
         if save_s:
-            binary_str_array = np.where(sim.s == -1, 0, sim.s).astype(int).astype(str)
+            binary_str_array = np.where(s_flat == -1, 0, s_flat).astype(int).astype(str)
             binary_string = ''.join(binary_str_array)
             binary = BitArray(bin=binary_string)
             binary.tofile(states_file)
