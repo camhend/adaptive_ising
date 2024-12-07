@@ -21,6 +21,7 @@ def gen_filter(length: int, center_index: tuple):
              filter[idx] = 1
         norm[idx] = pos[idx] - pos[center]
 
+    # fix rows if center is on an even row
     if (center_index[1] % 2 ==0):
         for row in filter:
             row[0: len(row) - 1] = row[1: (len(row))]
@@ -30,15 +31,8 @@ def gen_filter(length: int, center_index: tuple):
 # return a matrix of 2D grid coordinates for creating a hex lattice
 # each element in the matrix corresponds to a position to place a hexagon
 # The radius of the bounding circle around a hexagon is 1.
-# Specify whether to shift even or odd rows to the right.
+# Odd rows are shifted to the right.
 def hex_coord(shape: tuple):
-    # if (shifted_row_parity != 'even' or shifted_row_parity != 'odd'):
-    #     raise Exception("must specify wether to shift even or odd rows")
-
-    # parity = 0
-    # if (shifted_row_parity == 'odd'):
-    #     parity = 1
-
     size = 1 # radius of bounding circle
     horizontal_spacing = size * np.sqrt(3)
     vertical_spacing = size * (3/2)
