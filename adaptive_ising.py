@@ -13,13 +13,15 @@ class Simulation:
     N = 10000
     shape = (100,100)
     s = np.ones(shape)
-    # H = np.zeros(N.shape)
-    H = 0
+    H = np.zeros(shape)
+    # H = 0
     P = hex_coord(shape) # hex grid positions
     m = 0
-    beta = 2
+    beta = 0.2
     dt = 1 / N
     c = 0.01
+    even_filter = gen_filter(7, (0,0))
+    odd_filter = gen_filter(7, (0,1))
 
     def casual(self):
         '''Returns a random number in (0,1).'''
@@ -34,10 +36,26 @@ class Simulation:
                 self.s[idx]=-1
             self.m += self.s[idx] / self.N
 
-    def single_update(self, n):
+    def single_update(self, n: tuple):
         '''update of the spin n according to the heat bath method'''
         news = 0
-        pp = 1 / (1 + (1 / np.exp(2 * self.beta * (self.m + self.H))))
+        # find sum of states m for all neighbors
+        m = 0 
+        filter = None
+        if (n[1] % 2 == 0):
+            filter = self.even_filter
+        else:
+            filter = self.odd_filter
+
+        filter_center = np.array((len(filter) // 2, len(filter) // 2 ))
+        n_vector = np.array(n)
+        for idx in np.ndindex(filter.shape):
+            idx = np.array(idx)
+            (x,y) = (n_vector + idx - filter_center)
+            (x,y) = (x % self.shape[0], y % self.shape[1])
+            m += self.s[(x,y)]
+
+        pp = 1 / (1 + (1 / np.exp(2 * self.beta * (m + self.H[n]))))
 
         if (self.casual() < pp):
             news = 1
@@ -48,12 +66,14 @@ class Simulation:
             self.s[n] = -self.s[n]
             self.m += 2.0 * self.s[n] / self.N
 
-        self.H -= self.c * self.m * self.dt
+        num_neighbors = filter.sum()
+        self.H[n] -= self.c * (m / num_neighbors) * self.dt
 
     def update(self):
         '''one sweep over N spins'''
         for i in range(0,self.N):
             n = int(self.N * self.casual())
+            n = ((n // self.shape[0]), (n % self.shape[1]))
             self.single_update(n)
 
     def vectorized_update(self):
@@ -73,8 +93,8 @@ class Simulation:
 # Main
 random.seed(0)
 t = 0
-wait = 100
-total = 700 #10000000
+wait = 0
+total = 500 #10000000
 
 save_s = False
 if len(sys.argv) > 1:
@@ -104,11 +124,11 @@ while t <= wait + total:
             binary = BitArray(bin=binary_string)
             binary.tofile(states_file)
 
-    # sim.update()
-    sim.vectorized_update()
+    sim.update()
+    # sim.vectorized_update()
                              
     t += 1
-    if (t % 100 == 0):
-        print(f"{t}/{total}", end='\r')
+    # if (t % 100 == 0):
+    print(f"{t}/{total}", end='\r')
 
 file.close()
