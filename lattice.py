@@ -8,7 +8,7 @@ import numpy as np
 # The shape of the filter after transformation onto a hex grid 
 # depends on whether the center of the filter is in an even or odd row. 
 # Assumes filter is in a hex grid where odd rows are shifted to the right.
-def gen_filter(length: int, center_index: tuple): 
+def gen_filter(length: int, center_row_is_odd: bool): 
     filter = np.zeros((length, length))
     norm = np.zeros((length, length, 2))
     pos = hex_coord(filter.shape)
@@ -22,7 +22,7 @@ def gen_filter(length: int, center_index: tuple):
         norm[idx] = pos[idx] - pos[center]
 
     # fix rows if center is on an even row
-    if (center_index[1] % 2 ==0):
+    if (not center_row_is_odd):
         for row in filter:
             row[0: len(row) - 1] = row[1: (len(row))]
             row[-1] = 0

@@ -17,11 +17,11 @@ class Simulation:
     # H = 0
     P = hex_coord(shape) # hex grid positions
     m = 0
-    beta = 0.2
+    beta = 0.025
     dt = 1 / N
     c = 0.01
-    even_filter = gen_filter(7, (0,0))
-    odd_filter = gen_filter(7, (0,1))
+    even_filter = gen_filter(7, center_row_is_odd=False)
+    odd_filter = gen_filter(7, center_row_is_odd=True)
 
     def casual(self):
         '''Returns a random number in (0,1).'''
@@ -73,7 +73,7 @@ class Simulation:
         '''one sweep over N spins'''
         for i in range(0,self.N):
             n = int(self.N * self.casual())
-            n = ((n // self.shape[0]), (n % self.shape[1]))
+            n = ((n // self.shape[0]), (n % self.shape[1])) # convert to 2D tuple index
             self.single_update(n)
 
     def vectorized_update(self):
@@ -93,8 +93,8 @@ class Simulation:
 # Main
 random.seed(0)
 t = 0
-wait = 0
-total = 500 #10000000
+wait = 100
+total = 700 #10000000
 
 save_s = False
 if len(sys.argv) > 1:
@@ -128,7 +128,7 @@ while t <= wait + total:
     # sim.vectorized_update()
                              
     t += 1
-    # if (t % 100 == 0):
-    print(f"{t}/{total}", end='\r')
+    if (t % 100 == 0):
+        print(f"{t}/{total}", end='\r')
 
 file.close()
