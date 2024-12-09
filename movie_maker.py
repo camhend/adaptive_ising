@@ -8,6 +8,24 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from bitstring import BitStream
 
+def hex_coord(data, radius):
+    shape = np.shape(data)
+
+    horizontal_spacing = radius * np.sqrt(3)
+    vertical_spacing = radius * (3/2)
+    shift = radius * .5
+    points = []
+    # shift odd rows to the right
+    for idx in np.ndindex(shape):
+        if not data[idx]:
+            continue
+        (x,y) = idx
+        if y % 2 == 1:
+            points.append([(x + shift) * horizontal_spacing, y * vertical_spacing])
+        else: 
+            points.append([x * horizontal_spacing, y * vertical_spacing])
+    return np.vstack(points)
+
 frame_size = 10000
 img_dimentions = (100,100)
 fps = 30
@@ -32,20 +50,22 @@ while raw_bit_string:
     counter += 1
     bit_stream = BitStream(raw_bit_string) 
     bin_string = bit_stream.read('bin')
-    frames.append(np.array(list(bin_string), dtype=int).reshape(img_dimentions))
+    frames.append(hex_coord(np.array(list(bin_string), dtype=int).reshape(img_dimentions), 7))
     raw_bit_string = bin_file.read(bytes_size)
 print()
 
 print("Generating Frames")
 fig = plt.figure(figsize=(8,8))
 a = frames[0]
-im = plt.imshow(a, interpolation='none', aspect='auto', vmin=0, vmax=1)
+# im = plt.imshow(a, interpolation='none', aspect='auto', vmin=0, vmax=1)
+im = plt.hexbin(a[:,0], a[:,1], gridsize=50, cmap='viridis')
 
 def animate_func(i):
     if i % fps == 0:
         print(f'{i}/{len(frames)}', end='\r', flush=True)
 
-    im.set_array(frames[i])
+    # im.set_array(frames[i])#[:,0], frames[i][:,1])
+    im = plt.hexbin(frames[i][:,0], frames[i][:,1], gridsize=50, cmap='viridis')
     return [im]
 print()
 
