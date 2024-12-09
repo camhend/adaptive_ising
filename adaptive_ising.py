@@ -23,31 +23,31 @@ if len(sys.argv) > 2:
     total = int(sys.argv[2])
 print(f'save_s:{save_s} | total:{total}')
 
-sim = sf.Simulation(total, N=250, shape_x=50, shape_y=50)
-# sim = osf.Simulation(total, N=10000, beta=1)
+sim = sf.Simulation(total, beta=0.07)
+# sim = osf.Simulation(total, N=250)
 sim.init()
 
 file = open('simulation_output.txt', 'w')
 states_file = open('simulation_spins.bin', 'bw')
-# print(f"0/{total}", end='\r')
-# while t <= wait + total:
-#     if(t > wait):
-#         file.write(sim.get_values_printout())
+print(f"0/{total}", end='\r')
+while t <= wait + total:
+    if(t > wait):
+        file.write(sim.get_values_printout())
 
-#         if save_s:
-#             s_flat = sim.s.flatten()
-#             binary_str_array = np.where(s_flat == -1, 0, s_flat).astype(int).astype(str)
-#             binary_string = ''.join(binary_str_array)
-#             binary = BitArray(bin=binary_string)
-#             binary.tofile(states_file)
+        if save_s:
+            s = sim.get_s_matrix()
+            binary_str_array = np.where(s == -1, 0, s).astype(int).astype(str)
+            binary_string = ''.join(binary_str_array)
+            binary = BitArray(bin=binary_string)
+            binary.tofile(states_file)
 
-#     sim.update()
-#     # sim.vectorized_update()
+    sim.update()
+    # sim.vectorized_update()
                              
-#     t += 1
-#     if (t % 100 == 0):
-#         print(f"{t}/{total}", end='\r')
-sim.one_go()
+    t += 1
+    if (t % 10 == 0):
+        print(f"{t}/{total}", end='\r')
+# sim.one_go()
 (m, H) = sim.get_saved_mH()
 for i in range(len(m)):
     file.write(f"{m[i]} {H[i]}\n")
