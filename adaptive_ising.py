@@ -23,8 +23,8 @@ if len(sys.argv) > 2:
     total = int(sys.argv[2])
 print(f'save_s:{save_s} | total:{total}')
 
-# sim = sf.Simulation()
-sim = osf.Simulation(total, N=250)
+sim = sf.Simulation(total, N=250, shape_x=50, shape_y=50)
+# sim = osf.Simulation(total, N=10000, beta=1)
 sim.init()
 
 file = open('simulation_output.txt', 'w')
