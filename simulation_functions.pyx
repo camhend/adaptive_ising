@@ -56,14 +56,17 @@ def hex_coord(shape: tuple):
     return grid
 
 cdef class Simulation:
-    cdef int N, shape_x, shape_y
+    cdef int N, total, shape_x, shape_y
     cdef np.ndarray s, h, P, even_filter, odd_filter
+    cdef cython.double [:] m_out, H_out
     cdef cython.double H, m, beta, dt, c 
 
-    def __init__(self, int N=10000, int shape_x=100, int shape_y=100, cython.double beta=0.025, cython.double c=0.01, int filter_length=7):
+    def __init__(self, int total=10000, int N=10000, int shape_x=100, int shape_y=100, cython.double beta=0.025, cython.double c=0.01, int filter_length=7):
         assert(shape_x * shape_y == N,'Simulation N value should equal shape_x * shape_y')
 
-        self.N = N
+        self.total = total
+        self.N = N    
+        cdef cython.double [:] m_out, H_out
         self.H = 0
         self.shape_x = shape_x
         self.shape_y = shape_y
@@ -73,8 +76,11 @@ cdef class Simulation:
         self.m = 0.0
         self.beta = beta
         self.c = c
+        self.dt = 1 / N
         self.even_filter = gen_filter(filter_length, center_row_is_odd=False)
-        self.even_filter = gen_filter(filter_length, center_row_is_odd=True)
+        self.odd_filter = gen_filter(filter_length, center_row_is_odd=True)
+        self.m_out = np.zeros(total, dtype=np.double)
+        self.H_out = np.zeros(total, dtype=np.double)
 
     cdef casual(self):
         '''Returns a random number in (0,1).'''
@@ -92,22 +98,22 @@ cdef class Simulation:
     cdef single_update(self, int n_x, int n_y):
         '''update of the spin n according to the heat bath method'''
         cdef int news, m 
-        cdef np.ndarray filter, filter_center, n_vector
+        cdef np.ndarray sim_filter, filter_center, n_vector
 
         news = 0
         # find sum of states m for all neighbors
         m = 0 
-        filter = None
+        sim_filter = np.empty(0)
         if (n_y % 2 == 0):
-            filter = self.even_filter
+            sim_filter = self.even_filter
         else:
-            filter = self.odd_filter
+            sim_filter = self.odd_filter
 
-        filter_center = np.array((len(filter) // 2, len(filter) // 2 ))
+        sim_filter_center = np.array((len(sim_filter) // 2, len(sim_filter) // 2 ))
         n_vector = np.array((n_x, n_y))
-        for idx in np.ndindex(np.shape(filter)):
+        for idx in np.ndindex(np.shape(sim_filter)):
             idx = np.array(idx)
-            (x,y) = (n_vector + idx - filter_center)
+            (x,y) = (n_vector + idx - sim_filter_center)
             (x,y) = (x % self.shape_x, y % self.shape_y)
             m += self.s[(x,y)]
 
@@ -122,7 +128,7 @@ cdef class Simulation:
             self.s[(n_x, n_y)] = -self.s[(n_x, n_y)]
             self.m += 2.0 * self.s[(n_x, n_y)] / self.N
 
-        num_neighbors = filter.sum()
+        num_neighbors = sim_filter.sum()
         self.h[(n_x, n_y)] -= self.c * (m / num_neighbors) * self.dt
 
     cdef c_update(self):
@@ -133,11 +139,32 @@ cdef class Simulation:
             n_y = (n % self.shape_y) # convert to 2D tuple index
             self.single_update(n_x, n_y)
 
-    def update(self):
+    cpdef update(self):
         self.c_update()
+
+    cdef c_one_go(self):
+        cdef int n, i, count
+        count = 0
+        for i in range(0, self.total):
+            count += 1
+            print(f'{count}/{self.total}', end='\r')
+            for j in range(0, self.N):
+                n = int(self.N * self.casual())
+                n_x = n // self.shape_x # convert to 2D tuple index
+                n_y = n % self.shape_y # convert to 2D tuple index
+                self.single_update(n_x, n_y)
+            self.m_out[i] = self.m
+            self.H_out[i] = self.H
+        print(f'{count}/{self.total}: DONE')
+
+    cpdef one_go(self):
+        self.c_one_go()
 
     def get_values_printout(self):
         return f'{self.m} {self.H}\n'
+    
+    cpdef get_saved_mH(self):
+        return (self.m_out, self.H_out)
     
     def get_s_matrix(self):
         return self.s
