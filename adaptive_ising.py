@@ -13,8 +13,8 @@ import old_sim_functions as osf
 # Main
 random.seed(0)
 t = 0
-wait = 100
-total = 700 #10000000
+wait = 10
+total = 200 #10000000
 
 save_s = False
 if len(sys.argv) > 1:
@@ -23,7 +23,7 @@ if len(sys.argv) > 2:
     total = int(sys.argv[2])
 print(f'save_s:{save_s} | total:{total}')
 
-sim = sf.Simulation(total, beta=0.07)
+sim = sf.Simulation(total, N=4096, shape_x=64, shape_y=64, beta=1.2, filter_length=50)
 # sim = osf.Simulation(total, N=250)
 sim.init()
 
