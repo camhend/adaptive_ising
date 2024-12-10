@@ -9,7 +9,7 @@ np.import_array()
 from libc.stdlib cimport rand, RAND_MAX
 import random
 
-# return a matrix that contains a circular filter on a hex grid
+# Return a matrix that contains a circular filter on a hex grid
 # The shape of the filter after transformation onto a hex grid 
 # depends on whether the center of the filter is in an even or odd row. 
 # Assumes filter is in a hex grid where odd rows are shifted to the right.
@@ -54,7 +54,14 @@ def hex_coord(shape: tuple):
         grid[idx][1] *= vertical_spacing
     return grid
 
+# Create a connectivity matrix with local connectivity.
+# Connections are made using the filter from gen_filter.
+# grid_shape: Shape of grid. The connectivity matrix will be a 
+#             a square of sidelength grid_shape[0] * grid_shape[1]
+# filter_size: Length of the filter matrix. The circular filter 
+#              is bounded within this matrix.
 def gen_connectivity_matrix(grid_shape: tuple, filter_size: int):
+    print("Generating connectivity matrix...")
     C = np.zeros( (np.prod(grid_shape), np.prod(grid_shape)) )
     xlim, ylim = grid_shape
     even_filter = gen_filter(filter_size, center_row_is_odd=False)
@@ -79,7 +86,7 @@ def gen_connectivity_matrix(grid_shape: tuple, filter_size: int):
 
 cdef class Simulation:
     cdef int N, shape_x, shape_y, total
-    cdef np.ndarray s, h, P, even_filter, odd_filter, m_out, H_out, connectivity_matrix, num_neighbors
+    cdef np.ndarray s, h, m_out, H_out, connectivity_matrix, num_neighbors
     cdef cython.double H, m, beta, dt, c 
 
     def __init__(self, int total= 1000, int N=10000, int shape_x=100, int shape_y=100, cython.double beta=0.025, cython.double c=0.01, int filter_length=7):
@@ -92,22 +99,16 @@ cdef class Simulation:
         self.shape_y = shape_y
         self.s = np.ones(N)
         self.h = np.zeros(N)
-        self.P = hex_coord((shape_x, shape_y))
         self.m = 0.0
         self.beta = beta
         self.c = c
         self.dt = 1 / N
         self.m_out = np.zeros(total, dtype=np.double)
         self.H_out = np.zeros(total, dtype=np.double)
-        # self.connectivity_matrix = gen_connectivity_matrix((shape_x, shape_y), filter_length)
-        self.connectivity_matrix = np.ones((N, N)) # fully connected
+        self.connectivity_matrix = gen_connectivity_matrix((shape_x, shape_y), filter_length) # locally connected
+        # self.connectivity_matrix = np.ones((N, N)) # fully connected
         self.num_neighbors = np.sum(self.connectivity_matrix, axis=0)
 
-    cdef casual(self):
-        '''Returns a random number in (0,1).'''
-        return rand() / RAND_MAX
-
-    # init no longer initializes H to 0 as we do so when we create a Simulation.
     def init(self):
         '''initalizes temperature configuration.'''
         print("Number of neighbors: ", self.num_neighbors[0])
@@ -121,14 +122,12 @@ cdef class Simulation:
         '''update of the spin n according to the heat bath method'''
         cdef int news 
         cdef cython.double m 
-
-
         news = 0
-        # find sum of states m for all neighbors
+        # find sum of states s for all neighbors
         m = np.dot(self.s, self.connectivity_matrix[n]) / self.num_neighbors[n]
 
-        pp = 1 / (1 + (1 / np.exp(2 * self.beta * (m + self.H))))
-        # pp = 1 / (1 + (1 / np.exp(2 * self.beta * (self.m + self.H))))
+        pp = 1 / (1 + (1 / np.exp(2 * self.beta * (m + self.H)))) # locally connected
+        # pp = 1 / (1 + (1 / np.exp(2 * self.beta * (self.m + self.H)))) # fully connected
 
         if (random.random() < pp):
             news = 1
@@ -141,17 +140,6 @@ cdef class Simulation:
             m += 2.0 * self.s[n] / self.num_neighbors[n]
 
         self.H -= self.c * m * self.dt
-
-        # print("self.s[n]:", self.s[n])
-        # print("m: ", m)
-        # print("self.m", self.m)
-        # print("h: ", self.h[n])
-        # print("H", self.H)
-        # print("num neighbors:", self.num_neighbors[n])
-        # print("N: ", self.N)
-        # print()
-        # if (self.H != self.h[n]):
-        #     exit()
 
     cdef c_update(self):
         '''one sweep over N spins'''
