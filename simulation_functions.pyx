@@ -99,7 +99,8 @@ cdef class Simulation:
         self.dt = 1 / N
         self.m_out = np.zeros(total, dtype=np.double)
         self.H_out = np.zeros(total, dtype=np.double)
-        self.connectivity_matrix = gen_connectivity_matrix((shape_x, shape_y), filter_length)
+        # self.connectivity_matrix = gen_connectivity_matrix((shape_x, shape_y), filter_length)
+        self.connectivity_matrix = np.ones((N, N)) # fully connected
         self.num_neighbors = np.sum(self.connectivity_matrix, axis=0)
 
     cdef casual(self):
@@ -109,6 +110,7 @@ cdef class Simulation:
     # init no longer initializes H to 0 as we do so when we create a Simulation.
     def init(self):
         '''initalizes temperature configuration.'''
+        print("Number of neighbors: ", self.num_neighbors[0])
         for i in range(0, self.N):
             # s[i]=1 #| we already populated s with all ones 
             if(i % 2 == 0):
@@ -117,14 +119,16 @@ cdef class Simulation:
 
     cdef single_update(self, int n):
         '''update of the spin n according to the heat bath method'''
-        cdef int news, m 
-        cdef np.ndarray filter, filter_center, n_vector
+        cdef int news 
+        cdef cython.double m 
+
 
         news = 0
         # find sum of states m for all neighbors
-        m = np.dot(self.s, self.connectivity_matrix[n])
+        m = np.dot(self.s, self.connectivity_matrix[n]) / self.num_neighbors[n]
 
-        pp = 1 / (1 + (1 / np.exp(2 * self.beta * (m + self.h[n]))))
+        pp = 1 / (1 + (1 / np.exp(2 * self.beta * (m + self.H))))
+        # pp = 1 / (1 + (1 / np.exp(2 * self.beta * (self.m + self.H))))
 
         if (random.random() < pp):
             news = 1
@@ -134,8 +138,20 @@ cdef class Simulation:
         if (news != self.s[n]):
             self.s[n] = -self.s[n]
             self.m += 2.0 * self.s[n] / self.N
+            m += 2.0 * self.s[n] / self.num_neighbors[n]
 
-        self.h[n] -= self.c * (m / self.num_neighbors[n]) * self.dt
+        self.H -= self.c * m * self.dt
+
+        # print("self.s[n]:", self.s[n])
+        # print("m: ", m)
+        # print("self.m", self.m)
+        # print("h: ", self.h[n])
+        # print("H", self.H)
+        # print("num neighbors:", self.num_neighbors[n])
+        # print("N: ", self.N)
+        # print()
+        # if (self.H != self.h[n]):
+        #     exit()
 
     cdef c_update(self):
         '''one sweep over N spins'''
