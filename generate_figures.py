@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KernelDensity
 
-bin_count = 10000
+bin_count = 1000
 save_path_1c = 'figure_1c.png'
 save_path_1d = 'figure_1d.png'
 data_paths = ['simulation_output.txt']
@@ -30,16 +30,6 @@ for data_path in data_paths:
     print(f'Reading Raw Data of {data_path}')
 
     m_list = np.loadtxt(data_path, delimiter=' ')[:,0]
-    # m_list = []
-    # h_list = []
-    # count = 0
-    # for line in raw_data:
-    #     print(count, end='\r', flush=True)
-    #     tokens = line.split(' ')
-    #     m_list.append(float(tokens[0]))
-    #     # h_list.append(float(tokens[1]))
-    #     count += 1
-    # print(count)
     m_lists.append(m_list)
 
 # Calculate a_0 and P(a_0)
@@ -80,12 +70,6 @@ p_of_a_0s_lists = []
 for i, a_0s in enumerate(a_0_lists):
     print(f'Building a_0 Distribution {i+1}')
 
-    # samples = a_0s[np.random.choice(a_0s.shape[0], 1000, replace=False)]
-
-    # kde = KernelDensity(kernel='gaussian', bandwidth=0.2, algorithm='kd_tree', atol=1e-3, rtol=1e-2).fit(samples.reshape(-1,1))
-    # print("Scoring values")
-    # p_of_a_0s = np.exp(kde.score_samples(a_0s.reshape(-1,1)))
-
     hist, bin_edges = np.histogram(a_0s, bin_count)
     bin_edges[0] -= 1
     bin_edges[-1] += 1
@@ -99,11 +83,6 @@ for i, a_0s in enumerate(a_0_lists):
 p_of_t_lists = []
 for i, ts in enumerate(t_lists):
     print(f'Building t Distribution {i+1}')
-    # samples = a_0s[np.random.choice(a_0s.shape[0], 1000, replace=False)]
-
-    # kde = KernelDensity(kernel='gaussian', bandwidth=0.2, algorithm='kd_tree', atol=1e-3, rtol=1e-2).fit(samples.reshape(-1,1))
-    # print("Scoring values")
-    # p_of_a_0s = np.exp(kde.score_samples(a_0s.reshape(-1,1)))
 
     hist, bin_edges = np.histogram(ts, bin_count)
     bin_edges[0] -= 1

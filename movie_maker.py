@@ -8,24 +8,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from bitstring import BitStream
 
-def hex_coord(data, radius):
-    shape = np.shape(data)
-
-    horizontal_spacing = radius * np.sqrt(3)
-    vertical_spacing = radius * (3/2)
-    shift = radius * .5
-    points = []
-    # shift odd rows to the right
-    for idx in np.ndindex(shape):
-        if not data[idx]:
-            continue
-        (x,y) = idx
-        if y % 2 == 1:
-            points.append([(x + shift) * horizontal_spacing, y * vertical_spacing])
-        else: 
-            points.append([x * horizontal_spacing, y * vertical_spacing])
-    return np.vstack(points)
-
 frame_size = 4096
 img_dimentions = (64,64)
 fps = 30
@@ -63,7 +45,7 @@ def animate_func(i):
     if i % fps == 0:
         print(f'{i}/{len(frames)}', end='\r', flush=True)
 
-    im.set_array(frames[i])#[:,0], frames[i][:,1])
+    im.set_array(frames[i])
     return [im]
 print()
 
