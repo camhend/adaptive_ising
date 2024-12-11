@@ -13,6 +13,6 @@ Then we can run the simulation. To get the animation data and magnetization data
 
 Then to generate the animation:
 
-``movie_maker.py``
+``python movie_maker.py``
 
 simulation_functions.pyx contains options for adjusting the beta and c values, number of nodes to simulate, duration of simulation, etc., which can be played with in adaptive_ising.py.
