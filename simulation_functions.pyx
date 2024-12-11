@@ -8,6 +8,8 @@ cimport numpy as np
 np.import_array()
 from libc.stdlib cimport rand, RAND_MAX
 import random
+import matplotlib.pyplot as plt
+from matplotlib.patches import RegularPolygon
 
 # Return a matrix that contains a circular filter on a hex grid
 # The shape of the filter after transformation onto a hex grid 
@@ -83,6 +85,39 @@ def gen_connectivity_matrix(grid_shape: tuple, filter_size: int):
                 C_col = x * xlim + y
                 C[C_row, C_col] = 1
     return C
+
+def visualize_filter(grid_shape: tuple, filter_size: int, n_list):
+    grid = hex_coord(grid_shape)
+    fig, ax = plt.subplots(1)
+    ax.set_xlim([-1, grid_shape[0] * np.sqrt(3)])
+    ax.set_ylim([-1, grid_shape[0] * np.sqrt(3)])
+    ax.set_aspect('equal')
+    for idx in np.ndindex(grid.shape[:-1]):
+        color = 'blue'
+        pos = grid[idx]
+        hex = RegularPolygon(pos, numVertices=6, radius=.9, 
+                        color=color)
+        ax.text(*pos, idx, fontsize='x-small', horizontalalignment='center', color='w')
+        ax.add_patch(hex)
+
+    C = gen_connectivity_matrix(grid.shape[:-1], filter_size)
+    color = 'r'
+    row_len = grid.shape[1]
+    for n in n_list:
+        for i in range(len(C[0])):
+            if C[n][i] == 1:
+                if n == i: print("self connect")
+                pos = grid[ (i // row_len), (i % row_len)] 
+                hex = RegularPolygon(pos, numVertices=6, radius=.9, 
+                                color=color)
+                ax.text(*pos, (i // row_len, i % row_len), fontsize='x-small', horizontalalignment='center')
+                ax.add_patch(hex)
+
+        pos = grid[(n // row_len), (n % row_len)]
+        hex = RegularPolygon(pos, numVertices=6, radius=.8, 
+                        color='k')
+        ax.add_patch(hex)
+    plt.show()
 
 cdef class Simulation:
     cdef int N, shape_x, shape_y, total
