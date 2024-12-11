@@ -23,7 +23,7 @@ if len(sys.argv) > 2:
     total = int(sys.argv[2])
 print(f'save_s:{save_s} | total:{total}')
 
-sim = sf.Simulation(total, N=4096, shape_x=64, shape_y=64, beta=1.2, filter_length=50)
+sim = sf.Simulation(total, N=4096, shape_x=64, shape_y=64, beta=0.8, filter_length=7)
 # sim = osf.Simulation(total, N=250)
 sim.init()
 
@@ -48,8 +48,8 @@ while t <= wait + total:
     if (t % 10 == 0):
         print(f"{t}/{total}", end='\r')
 # sim.one_go()
-(m, H) = sim.get_saved_mH()
-for i in range(len(m)):
-    file.write(f"{m[i]} {H[i]}\n")
+# (m, H) = sim.get_saved_mH()
+# for i in range(len(m)):
+#     file.write(f"{m[i]} {H[i]}\n")
 
 file.close()
