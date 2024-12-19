@@ -22,12 +22,14 @@ Then to generate the animation:
 simulation_functions.pyx contains options for adjusting the beta and c values, number of nodes to simulate, duration of simulation, etc., which can be played with in adaptive_ising.py.
 
 ## All-to-all connectivity slightly above the critical point
-https://github.com/user-attachments/assets/eae3ea2f-cfef-492a-a9f0-2c8319ea7621
+https://github.com/user-attachments/assets/cb73673a-92ca-4574-9bc4-42e6bd401abf
 
 ## Local connectivity (18 neighbors) slightly above the critical point
-https://github.com/user-attachments/assets/ed6d5b6d-eb7c-44d6-8a18-6d3c89336563
+https://github.com/user-attachments/assets/e360a2c2-afbf-46ce-b20d-73a2cfc61fe1
 
 ## Local connectivity (60 neighbors) slightly above the critical point
-https://github.com/user-attachments/assets/bd6509db-82ca-469f-a03b-5f1565eec722
+https://github.com/user-attachments/assets/0d6b76bf-3bf7-44ae-a497-58dd99f6be44
+
+
 
 
